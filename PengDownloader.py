@@ -1,5 +1,5 @@
 # -*- encoding:utf-8 -*-
-import sqlite3, urllib, threadpool  # sqlite3：管理数据库；urllib：下载文件；threadpool：线程池
+import sqlite3, urllib.request, threadpool  # sqlite3：管理数据库；urllib：下载文件；threadpool：线程池
 
 
 class PengDownloader:
@@ -15,24 +15,25 @@ class PengDownloader:
         pool.wait()  # 等待运行完成
 
     def downloader(self, url):
-        pre = url.split('/')[-1]
+        prelit = url.split('/')[-1]
+        pre = prelit.split('?')[0]
         name = pre if pre.split(".")[-1] in ["jpg", "png", "bmp"]else pre + ".jpg"  # 文件名
-        print self.folder + "\\" + name
+        print(self.folder + "\\" + name)
         self.auto_down(url, self.folder + "\\" + name)  # 下载
 
     def auto_down(self, url, filename):  # 处理出现网络不好的问题，重新下载
         try:
-            urllib.urlretrieve(url, filename)
-        except urllib.ContentTooShortError:
-            print 'Network Error,redoing download :' + url
+            urllib.request.urlretrieve(url, filename)
+        except urllib.request.ContentTooShortError:
+            print('Network Error,redoing download :' + url)
             self.auto_down(url, filename)  # 递归
 
 
 if __name__ == "__main__":
     urls = []
-    conn = sqlite3.connect("D:\\PythonLab\\Unsplash Downloader\\database\\link.db")  # 连接数据库
-    cursor = conn.execute("SELECT LINK FROM LINK WHERE ID < 10")  # 一次性选择全部链接
+    conn = sqlite3.connect("F:\\UnsplashDownloader-master\\database\\link.db")  # 连接数据库
+    cursor = conn.execute("SELECT LINK FROM LINK WHERE ID > 0")  # 一次性选择全部链接
     for row in cursor:
         urls.append(row[0])
-    pd = PengDownloader(urls, "D:\\PythonLab\\Unsplash Downloader\\Files", threads=400)  # 新建下载器
+    pd = PengDownloader(urls, "F:\\UnsplashDownloader-master\\Files", threads=400)  # 新建下载器
     pd.run()
